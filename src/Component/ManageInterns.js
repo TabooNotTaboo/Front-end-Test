@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Form, Input, Button, Row, Col, Modal } from 'antd';
+import { Table, Form, Input, Button, Row, Col, Modal, message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { addIntern, setInterns, updateIntern, deleteIntern } from '../actions/internActions';
 import axios from 'axios';
@@ -10,6 +10,7 @@ const InternManagement = () => {
   const [interns, setFilteredInterns] = useState(allInterns);
   const [originalInterns, setOriginalInterns] = useState(allInterns);
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editedInternId, setEditedInternId] = useState(null);
   const [newExpert, setNewExpert] = useState({
@@ -18,14 +19,25 @@ const InternManagement = () => {
     sdt: '',
     position: '',
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [searchValues, setSearchValues] = useState({
     name: '',
     email: '',
     sdt: '',
     position: '',
   });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleEditIntern = (record) => {
+    setEditModalVisible(true);
+    setEditedInternId(record.id);
+    setNewExpert({
+      name: record.name,
+      email: record.email,
+      sdt: record.sdt,
+      position: record.position,
+    });
+  };
 
   useEffect(() => {
     dispatch(setInterns(interns));
@@ -56,8 +68,7 @@ const InternManagement = () => {
       const existingIntern = originalInterns.find(intern => intern.email === values.email || intern.sdt === values.sdt);
 
       if (existingIntern) {
-        setError('Email hoặc Số điện thoại đã tồn tại.');
-        setSuccess('');
+        message.error('Email hoặc Số điện thoại đã tồn tại.');
         return;
       }
 
@@ -68,26 +79,13 @@ const InternManagement = () => {
         dispatch(addIntern(newData.data));
         setOriginalInterns(newData.data);
         setFilteredInterns(newData.data);
-        setError('');
-        setSuccess('Intern đã được thêm thành công!');
+        message.success('Intern đã được thêm thành công!');
       } else {
-        setError('Failed to add intern.');
-        setSuccess('');
+        message.error('Failed to add intern.');
       }
     } catch (error) {
       console.error('Error adding intern:', error);
     }
-  };
-
-  const handleEditIntern = (record) => {
-    setNewExpert({
-      name: record.name,
-      email: record.email,
-      sdt: record.sdt,
-      position: record.position,
-    });
-    setEditedInternId(record.id);
-    setEditModalVisible(true);
   };
 
   const handleDeleteIntern = async (id) => {
@@ -100,7 +98,7 @@ const InternManagement = () => {
         setOriginalInterns(newData.data);
         setFilteredInterns(newData.data);
       } else {
-        console.error('Failed to delete intern.');
+        message.error('Failed to delete intern.');
       }
     } catch (error) {
       console.error('Error deleting intern:', error);
@@ -109,15 +107,14 @@ const InternManagement = () => {
 
   const handleEditModalOk = async () => {
     try {
-      const values = form.getFieldsValue();
+      const values = editForm.getFieldsValue();
 
       const existingIntern = originalInterns.find(intern => (
         (intern.email === values.email || intern.sdt === values.sdt) && intern.id !== editedInternId
       ));
 
       if (existingIntern) {
-        setError('Email hoặc Số điện thoại đã tồn tại.');
-        setSuccess('');
+        message.error('Email hoặc Số điện thoại đã tồn tại.');
         return;
       }
 
@@ -130,23 +127,14 @@ const InternManagement = () => {
         setFilteredInterns(newData.data);
         setEditModalVisible(false);
         setEditedInternId(null);
-        form.resetFields();
-        setError('');
-        setSuccess('Intern đã được cập nhật thành công!');
+        editForm.resetFields();
+        message.success('Intern đã được cập nhật thành công!');
       } else {
-        setError('Failed to update intern.');
-        setSuccess('');
+        message.error('Failed to update intern.');
       }
     } catch (error) {
       console.error('Error updating intern:', error);
     }
-  };
-
-  const handleEditModalCancel = () => {
-    setEditModalVisible(false);
-    setEditedInternId(null);
-    form.resetFields();
-    setError('');
   };
 
   const handleInputChange = (e) => {
@@ -160,7 +148,7 @@ const InternManagement = () => {
   const handleSearch = () => {
     const filteredData = originalInterns.filter((intern) => {
       return Object.entries(searchValues).every(([key, value]) => {
-        const internValue = intern[key] ? intern[key].toLowerCase() : '';
+        const internValue = intern[key] ? intern[key].toString().toLowerCase() : '';
         return value ? internValue.includes(value.toLowerCase()) : true;
       });
     });
@@ -177,6 +165,18 @@ const InternManagement = () => {
     });
     form.resetFields();
     setFilteredInterns(originalInterns);
+  };
+
+  const handleEditModalCancel = () => {
+    setEditModalVisible(false);
+    setEditedInternId(null);
+    editForm.resetFields();
+    setNewExpert({
+      name: '',
+      email: '',
+      sdt: '',
+      position: '',
+    });
   };
 
   const handleCloseError = () => {
@@ -221,24 +221,24 @@ const InternManagement = () => {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="Họ tên" name="name">
-              <Input />
+              <Input onChange={(e) => setSearchValues({ ...searchValues, name: e.target.value })} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="Email" name="email">
-              <Input />
+              <Input onChange={(e) => setSearchValues({ ...searchValues, email: e.target.value })} />
             </Form.Item>
           </Col>
         </Row>
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item label="Số điện thoại" name="sdt">
-              <Input />
+              <Input onChange={(e) => setSearchValues({ ...searchValues, sdt: e.target.value })} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item label="Vị trí thực tập" name="position">
-              <Input />
+              <Input onChange={(e) => setSearchValues({ ...searchValues, position: e.target.value })} />
             </Form.Item>
           </Col>
         </Row>
@@ -248,16 +248,10 @@ const InternManagement = () => {
               <Button type="primary" htmlType="submit">
                 Thêm Intern
               </Button>
-              <Button
-                style={{ marginLeft: 8 }}
-                onClick={handleSearch}
-              >
+              <Button style={{ marginLeft: 8 }} onClick={handleSearch}>
                 Tìm kiếm
               </Button>
-              <Button
-                style={{ marginLeft: 8 }}
-                onClick={handleClearSearch}
-              >
+              <Button style={{ marginLeft: 8 }} onClick={handleClearSearch}>
                 Clear
               </Button>
             </Form.Item>
@@ -286,7 +280,7 @@ const InternManagement = () => {
         onCancel={handleEditModalCancel}
       >
         <Form
-          form={form}
+          form={editForm}
           onFinish={handleEditModalOk}
           layout="vertical"
         >
@@ -315,7 +309,7 @@ const InternManagement = () => {
             </Col>
           </Row>
         </Form>
-      </Modal>  
+      </Modal>
     </div>
   );
 };

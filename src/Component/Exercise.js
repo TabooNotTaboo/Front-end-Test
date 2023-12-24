@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
 import { Form, Input, Button, DatePicker, Row, Col, Table, message } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 
-const ExerciseForm = () => {
-  const [users, setUsers] = useState([]);
+const ExerciseForm = ({ exercises, users, setExercises, setUsers }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedInternKeys, setSelectedInternKeys] = useState([]);
-  const [exercises, setExercises] = useState([]);
   const [form] = Form.useForm();
   const [editingExercise, setEditingExercise] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -94,25 +93,25 @@ const ExerciseForm = () => {
           `https://653b7ef32e42fd0d54d534ff.mockapi.io/exercise/${editingExercise.id}`,
           newExercise
         );
-        message.success('Bài tập đã được cập nhật thành công!');
+        message.success('Exercise updated successfully!');
       } else {
         const response = await axios.post(
           'https://653b7ef32e42fd0d54d534ff.mockapi.io/exercise',
           newExercise
         );
         console.log('Exercise added successfully:', response.data);
-        message.success('Bài tập đã được thêm thành công!');
+        message.success('Exercise added successfully!');
       }
 
       fetchExerciseData();
       form.resetFields();
       setSelectedRowKeys([]);
-      setSelectedInternKeys([]); // Clear selected intern keys
+      setSelectedInternKeys([]);
       setEditingExercise(null);
       setIsEditing(false);
     } catch (error) {
       console.error('Error handling exercise:', error);
-      message.error('Có lỗi xảy ra khi thực hiện thao tác với bài tập. Vui lòng thử lại sau.');
+      message.error('An error occurred while performing exercise operation. Please try again later.');
     }
   };
 
@@ -125,7 +124,6 @@ const ExerciseForm = () => {
       status: record.status,
     });
 
-    // Set selected intern keys for editing exercise
     const internKeys = record.InternID.map((id) => String(id));
     setSelectedInternKeys(internKeys);
 
@@ -135,11 +133,11 @@ const ExerciseForm = () => {
   const handleDelete = async (exerciseId) => {
     try {
       await axios.delete(`https://653b7ef32e42fd0d54d534ff.mockapi.io/exercise/${exerciseId}`);
-      message.success('Bài tập đã được xóa thành công!');
+      message.success('Exercise deleted successfully!');
       fetchExerciseData();
     } catch (error) {
       console.error('Error deleting exercise:', error);
-      message.error('Có lỗi xảy ra khi xóa bài tập. Vui lòng thử lại sau.');
+      message.error('An error occurred while deleting exercise. Please try again later.');
     }
   };
 
@@ -150,7 +148,7 @@ const ExerciseForm = () => {
   const handleClear = () => {
     form.resetFields();
     setSelectedRowKeys([]);
-    setSelectedInternKeys([]); // Clear selected intern keys
+    setSelectedInternKeys([]);
     setEditingExercise(null);
     setIsEditing(false);
   };
@@ -163,7 +161,7 @@ const ExerciseForm = () => {
       setExercises(response.data);
     } catch (error) {
       console.error('Error searching exercises:', error);
-      message.error('Có lỗi xảy ra khi tìm kiếm bài tập. Vui lòng thử lại sau.');
+      message.error('An error occurred while searching for exercises. Please try again later.');
     }
   };
 
@@ -171,9 +169,9 @@ const ExerciseForm = () => {
     <div>
       <Form name="exercise_form" form={form} onFinish={onFinish} layout="vertical">
         <Form.Item
-          label="Tên bài tập"
+          label="Exercise Name"
           name="exerciseName"
-          rules={[{ required: true, message: 'Vui lòng nhập tên bài tập!' }]}
+          rules={[{ required: true, message: 'Please enter exercise name!' }]}
         >
           <Input />
         </Form.Item>
@@ -181,18 +179,18 @@ const ExerciseForm = () => {
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              label="Ngày bắt đầu"
+              label="Start Date"
               name="startDate"
-              rules={[{ required: true, message: 'Vui lòng chọn ngày bắt đầu!' }]}
+              rules={[{ required: true, message: 'Please select start date!' }]}
             >
               <DatePicker style={{ width: '100%' }} />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
-              label="Ngày kết thúc"
+              label="End Date"
               name="endDate"
-              rules={[{ required: true, message: 'Vui lòng chọn ngày kết thúc!' }]}
+              rules={[{ required: true, message: 'Please select end date!' }]}
             >
               <DatePicker style={{ width: '100%' }} />
             </Form.Item>
@@ -200,9 +198,9 @@ const ExerciseForm = () => {
         </Row>
 
         <Form.Item
-          label="Trạng thái"
+          label="Status"
           name="status"
-          rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+          rules={[{ required: true, message: 'Please select status!' }]}
         >
           <Input />
         </Form.Item>
@@ -221,7 +219,7 @@ const ExerciseForm = () => {
         {isEditing && (
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Lưu
+              Save
             </Button>
           </Form.Item>
         )}
@@ -229,7 +227,7 @@ const ExerciseForm = () => {
         {!isEditing && (
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Thêm bài tập
+              Add Exercise
             </Button>
           </Form.Item>
         )}
@@ -240,7 +238,7 @@ const ExerciseForm = () => {
 
         <Input.Search
           style={{ width: 200, marginLeft: 8 }}
-          placeholder="Tìm kiếm bài tập"
+          placeholder="Search exercises"
           onSearch={handleSearch}
         />
       </Form>
@@ -250,4 +248,14 @@ const ExerciseForm = () => {
   );
 };
 
-export default ExerciseForm;
+const mapStateToProps = (state) => ({
+  exercises: state.exercise.exercises,
+  users: state.exercise.users,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  setExercises: (exercises) => dispatch({ type: 'SET_EXERCISES', payload: exercises }),
+  setUsers: (users) => dispatch({ type: 'SET_USERS', payload: users }),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ExerciseForm);
