@@ -19,6 +19,12 @@ const InternManagement = () => {
     position: '',
   });
   const [error, setError] = useState('');
+  const [searchValues, setSearchValues] = useState({
+    name: '',
+    email: '',
+    sdt: '',
+    position: '',
+  });
 
   useEffect(() => {
     dispatch(setInterns(interns));
@@ -100,6 +106,17 @@ const InternManagement = () => {
   const handleEditModalOk = async () => {
     try {
       const values = form.getFieldsValue();
+
+      // Kiểm tra trùng lặp trong danh sách ban đầu
+      const existingIntern = originalInterns.find(intern => (
+        (intern.email === values.email || intern.sdt === values.sdt) && intern.id !== editedInternId
+      ));
+
+      if (existingIntern) {
+        setError('Email hoặc Số điện thoại đã tồn tại.');
+        return;
+      }
+
       const response = await axios.put(`https://653b7ef32e42fd0d54d534ff.mockapi.io/intern/${editedInternId}`, values);
 
       if (response.status === 200) {
@@ -110,6 +127,7 @@ const InternManagement = () => {
         setEditModalVisible(false);
         setEditedInternId(null);
         form.resetFields();
+        setError('');
       } else {
         console.error('Failed to update intern.');
       }
@@ -122,6 +140,7 @@ const InternManagement = () => {
     setEditModalVisible(false);
     setEditedInternId(null);
     form.resetFields();
+    setError('');
   };
 
   const handleInputChange = (e) => {
@@ -132,7 +151,7 @@ const InternManagement = () => {
     });
   };
 
-  const handleSearch = (searchValues) => {
+  const handleSearch = () => {
     const filteredData = originalInterns.filter((intern) => {
       return Object.entries(searchValues).every(([key, value]) => {
         const internValue = intern[key] ? intern[key].toLowerCase() : '';
@@ -141,6 +160,21 @@ const InternManagement = () => {
     });
 
     setFilteredInterns(filteredData);
+  };
+
+  const handleClearSearch = () => {
+    setSearchValues({
+      name: '',
+      email: '',
+      sdt: '',
+      position: '',
+    });
+    form.resetFields();
+    setFilteredInterns(originalInterns);
+  };
+
+  const handleCloseError = () => {
+    setError('');
   };
 
   const columns = [
@@ -206,12 +240,15 @@ const InternManagement = () => {
               </Button>
               <Button
                 style={{ marginLeft: 8 }}
-                onClick={() => {
-                  const values = form.getFieldsValue();
-                  handleSearch(values);
-                }}
+                onClick={handleSearch}
               >
                 Tìm kiếm
+              </Button>
+              <Button
+                style={{ marginLeft: 8 }}
+                onClick={handleClearSearch}
+              >
+                Clear
               </Button>
             </Form.Item>
           </Col>
@@ -219,7 +256,7 @@ const InternManagement = () => {
         {error && (
           <Row>
             <Col span={24}>
-              <p style={{ color: 'red' }}>{error}</p>
+              <p style={{ color: 'red' }}>{error} <Button type="link" onClick={handleCloseError}>Đóng</Button></p>
             </Col>
           </Row>
         )}
@@ -260,11 +297,6 @@ const InternManagement = () => {
               </Form.Item>
             </Col>
           </Row>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Lưu
-            </Button>
-          </Form.Item>
         </Form>
       </Modal>
     </div>
