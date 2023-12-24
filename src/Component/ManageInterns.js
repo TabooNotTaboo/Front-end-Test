@@ -19,6 +19,7 @@ const InternManagement = () => {
     position: '',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [searchValues, setSearchValues] = useState({
     name: '',
     email: '',
@@ -56,6 +57,7 @@ const InternManagement = () => {
 
       if (existingIntern) {
         setError('Email hoặc Số điện thoại đã tồn tại.');
+        setSuccess('');
         return;
       }
 
@@ -67,8 +69,10 @@ const InternManagement = () => {
         setOriginalInterns(newData.data);
         setFilteredInterns(newData.data);
         setError('');
+        setSuccess('Intern đã được thêm thành công!');
       } else {
-        console.error('Failed to add intern.');
+        setError('Failed to add intern.');
+        setSuccess('');
       }
     } catch (error) {
       console.error('Error adding intern:', error);
@@ -107,13 +111,13 @@ const InternManagement = () => {
     try {
       const values = form.getFieldsValue();
 
-      // Kiểm tra trùng lặp trong danh sách ban đầu
       const existingIntern = originalInterns.find(intern => (
         (intern.email === values.email || intern.sdt === values.sdt) && intern.id !== editedInternId
       ));
 
       if (existingIntern) {
         setError('Email hoặc Số điện thoại đã tồn tại.');
+        setSuccess('');
         return;
       }
 
@@ -128,8 +132,10 @@ const InternManagement = () => {
         setEditedInternId(null);
         form.resetFields();
         setError('');
+        setSuccess('Intern đã được cập nhật thành công!');
       } else {
-        console.error('Failed to update intern.');
+        setError('Failed to update intern.');
+        setSuccess('');
       }
     } catch (error) {
       console.error('Error updating intern:', error);
@@ -175,6 +181,10 @@ const InternManagement = () => {
 
   const handleCloseError = () => {
     setError('');
+  };
+
+  const handleCloseSuccess = () => {
+    setSuccess('');
   };
 
   const columns = [
@@ -260,6 +270,13 @@ const InternManagement = () => {
             </Col>
           </Row>
         )}
+        {success && (
+          <Row>
+            <Col span={24}>
+              <p style={{ color: 'green' }}>{success} <Button type="link" onClick={handleCloseSuccess}>Đóng</Button></p>
+            </Col>
+          </Row>
+        )}
       </Form>
       <Table dataSource={interns} columns={columns} />
       <Modal
@@ -298,7 +315,7 @@ const InternManagement = () => {
             </Col>
           </Row>
         </Form>
-      </Modal>
+      </Modal>  
     </div>
   );
 };
