@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Form, Input, Button, Row, Col, Modal, message } from 'antd';
+import { Table, Form, Input, Button, Row, Col, Modal, message,DatePicker } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { addIntern, setInterns, updateIntern, deleteIntern } from '../actions/internActions';
 import axios from 'axios';
@@ -18,7 +18,11 @@ const InternManagement = () => {
     email: '',
     sdt: '',
     position: '',
+    startDate: '',
+    endDate: '',
+    status: '',
   });
+  
   const [searchValues, setSearchValues] = useState({
     name: '',
     email: '',
@@ -65,15 +69,20 @@ const InternManagement = () => {
 
   const handleAddIntern = async (values) => {
     try {
-      const existingIntern = originalInterns.find(intern => intern.email === values.email || intern.sdt === values.sdt);
-
+      const existingIntern = originalInterns.find(
+        (intern) => intern.email === values.email || intern.sdt === values.sdt
+      );
+  
       if (existingIntern) {
         message.error('Email hoặc Số điện thoại đã tồn tại.');
         return;
       }
-
-      const response = await axios.post('https://653b7ef32e42fd0d54d534ff.mockapi.io/intern', values);
-
+  
+      const response = await axios.post(
+        'https://653b7ef32e42fd0d54d534ff.mockapi.io/intern',
+        { ...values, startDate: newExpert.startDate, endDate: newExpert.endDate, status: newExpert.status }
+      );
+  
       if (response.status === 201) {
         const newData = await axios.get('https://653b7ef32e42fd0d54d534ff.mockapi.io/intern');
         dispatch(addIntern(newData.data));
@@ -87,6 +96,7 @@ const InternManagement = () => {
       console.error('Error adding intern:', error);
     }
   };
+  
 
   const handleDeleteIntern = async (id) => {
     try {
@@ -137,13 +147,13 @@ const InternManagement = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewExpert({
-      ...newExpert,
-      [name]: value,
-    });
-  };
+ const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setNewExpert({
+    ...newExpert,
+    [name]: value,
+  });
+};
 
   const handleSearch = () => {
     const filteredData = originalInterns.filter((intern) => {
@@ -242,6 +252,23 @@ const InternManagement = () => {
             </Form.Item>
           </Col>
         </Row>
+        <Form.Item label="Ngày bắt đầu" name="startDate">
+  <DatePicker
+    onChange={(date, dateString) => setNewExpert({ ...newExpert, startDate: dateString })}
+    style={{ width: '100%' }}
+  />
+</Form.Item>
+<Form.Item label="Ngày kết thúc" name="endDate">
+  <DatePicker
+    onChange={(date, dateString) => setNewExpert({ ...newExpert, endDate: dateString })}
+    style={{ width: '100%' }}
+  />
+</Form.Item>
+<Form.Item label="Trạng thái" name="status">
+  <Input
+    onChange={(e) => setNewExpert({ ...newExpert, status: e.target.value })}
+  />
+</Form.Item>
         <Row>
           <Col span={24}>
             <Form.Item>
