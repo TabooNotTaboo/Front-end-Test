@@ -242,7 +242,20 @@ const InternManagement = () => {
         </Row>
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="Số điện thoại" name="sdt">
+          <Form.Item
+              label="Số điện thoại"
+              name="sdt"
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập số điện thoại!',
+                },
+                {
+                  pattern: /^0[0-9]{9,10}$/,
+                  message: 'Số điện thoại phải bắt đầu từ số 0 và có chiều dài từ 10 hoặc 11 số!',
+                },
+              ]}
+            >
               <Input onChange={(e) => setSearchValues({ ...searchValues, sdt: e.target.value })} />
             </Form.Item>
           </Col>
