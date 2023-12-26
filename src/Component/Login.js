@@ -1,4 +1,3 @@
-// Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Row, Col, Card } from 'antd';
@@ -15,10 +14,14 @@ const Login = ({ internData, setAuthenticated, setIsAdmin }) => {
     if (isAdmin) {
       setAuthenticated(true);
       setIsAdmin(true);
+      localStorage.setItem('authenticated', true);
+      localStorage.setItem('isAdmin', true);
       navigate('/');
     } else if (isUser) {
       setAuthenticated(true);
       setIsAdmin(false);
+      localStorage.setItem('authenticated', true);
+      localStorage.setItem('isAdmin', false);
       navigate('/');
     } else {
       alert('Invalid credentials. Please try again.');
@@ -26,7 +29,6 @@ const Login = ({ internData, setAuthenticated, setIsAdmin }) => {
   };
 
   const checkUserCredentials = (inputEmail, inputPhone) => {
-    // Extract user data from internData array
     const userData = internData.filter((user) => user.email === inputEmail && user.sdt === inputPhone);
 
     return userData.length > 0;

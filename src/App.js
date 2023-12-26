@@ -1,48 +1,64 @@
-// App.js
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Button } from 'antd';
 import { BrowserRouter as Router, Route, Link, Routes, Navigate } from 'react-router-dom';
 import Login from './Component/Login';
 import ManageInterns from './Component/ManageInterns';
 import Exercise from './Component/Exercise';
 import Period from './Component/Period';
 import Home from './Component/Home';
-import {
-  HomeOutlined,
-  UserOutlined,
-  SettingOutlined,
-  UsergroupAddOutlined,
-  FileTextOutlined,
-  ScheduleOutlined,
-} from '@ant-design/icons';
+import { HomeOutlined, UserOutlined, SettingOutlined, UsergroupAddOutlined, FileTextOutlined, ScheduleOutlined, LogoutOutlined } from '@ant-design/icons';
 
 const { Sider, Content } = Layout;
 
 const App = () => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // Track admin status
+  const [authenticated, setAuthenticated] = useState(() => {
+    const storedAuth = localStorage.getItem('authenticated');
+    return storedAuth ? JSON.parse(storedAuth) : false;
+  });
+  const [isAdmin, setIsAdmin] = useState(() => {
+    const storedIsAdmin = localStorage.getItem('isAdmin');
+    return storedIsAdmin ? JSON.parse(storedIsAdmin) : false;
+  });
   const [internData, setInternData] = useState([]);
+  const [history, setHistory] = useState(null);
 
   useEffect(() => {
+    const storedAuth = localStorage.getItem('authenticated');
+    const storedIsAdmin = localStorage.getItem('isAdmin');
+
+    setAuthenticated(storedAuth ? JSON.parse(storedAuth) : false);
+    setIsAdmin(storedIsAdmin ? JSON.parse(storedIsAdmin) : false);
+
     fetch('https://653b7ef32e42fd0d54d534ff.mockapi.io/intern')
       .then((response) => response.json())
       .then((data) => setInternData(data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
 
+  useEffect(() => {
+    setHistory(history);
+  }, [history]);
+
   const PrivateRoute = ({ element, isAdminRequired }) => {
     if (isAdminRequired && !isAdmin) {
-      // Redirect to login if admin is required but the user is not an admin
       return <Navigate to="/login" />;
     }
 
     if (!authenticated) {
-      // Redirect to login if not authenticated
       return <Navigate to="/login" />;
     }
 
-    // Render the route component
     return element;
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authenticated');
+    localStorage.removeItem('isAdmin');
+
+    setAuthenticated(false);
+    setIsAdmin(false);
+
+    setHistory('/login');
   };
 
   return (
@@ -70,24 +86,18 @@ const App = () => {
                 <Menu.Item key="schedule" icon={<ScheduleOutlined />}>
                   <Link to="/schedule">Thời gian thực tập</Link>
                 </Menu.Item>
+                <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
+                  Logout
+                </Menu.Item>
               </Menu>
             </Sider>
             <Layout>
               <Content style={{ margin: '16px' }}>
                 <Routes>
                   <Route path="/login" element={<Login internData={internData} setAuthenticated={setAuthenticated} setIsAdmin={setIsAdmin} />} />
-                  <Route
-                    path="/intern"
-                    element={<PrivateRoute element={<ManageInterns />} isAdminRequired={true} />}
-                  />
-                  <Route
-                    path="/assignment"
-                    element={<PrivateRoute element={<Exercise />} isAdminRequired={true} />}
-                  />
-                  <Route
-                    path="/schedule"
-                    element={<PrivateRoute element={<Period />} isAdminRequired={true} />}
-                  />
+                  <Route path="/intern" element={<PrivateRoute element={<ManageInterns />} isAdminRequired={true} />} />
+                  <Route path="/assignment" element={<PrivateRoute element={<Exercise />} isAdminRequired={true} />} />
+                  <Route path="/schedule" element={<PrivateRoute element={<Period />} isAdminRequired={true} />} />
                   <Route path="/" element={<PrivateRoute element={<Home />} isAdminRequired={false} />} />
                 </Routes>
               </Content>
@@ -95,10 +105,7 @@ const App = () => {
           </>
         ) : (
           <Routes>
-            <Route
-              path="/login"
-              element={<Login internData={internData} setAuthenticated={setAuthenticated} setIsAdmin={setIsAdmin} />}
-            />
+            <Route path="/login" element={<Login internData={internData} setAuthenticated={setAuthenticated} setIsAdmin={setIsAdmin} />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         )}

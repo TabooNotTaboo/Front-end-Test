@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Form, Input, Button, DatePicker, Row, Col, Table, message } from 'antd';
+import { Form, Input, Button, DatePicker, Row, Col, Table, message, Collapse } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
 
@@ -10,6 +10,8 @@ const ExerciseForm = ({ exercises, users, setExercises, setUsers }) => {
   const [form] = Form.useForm();
   const [editingExercise, setEditingExercise] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  const { Panel } = Collapse;
 
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id' },
@@ -205,16 +207,20 @@ const ExerciseForm = ({ exercises, users, setExercises, setUsers }) => {
           <Input />
         </Form.Item>
 
-        <Table
-          dataSource={users}
-          columns={columns}
-          rowKey="id"
-          rowSelection={{
-            selectedRowKeys,
-            onChange: handleRowSelect,
-            type: 'checkbox',
-          }}
-        />
+        <Collapse>
+          <Panel header="Select Interns" key="1">
+            <Table
+              dataSource={users}
+              columns={columns}
+              rowKey="id"
+              rowSelection={{
+                selectedRowKeys,
+                onChange: handleRowSelect,
+                type: 'checkbox',
+              }}
+            />
+          </Panel>
+        </Collapse>
 
         {isEditing && (
           <Form.Item>
@@ -225,11 +231,11 @@ const ExerciseForm = ({ exercises, users, setExercises, setUsers }) => {
         )}
 
         {!isEditing && (
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Add Exercise
-            </Button>
-          </Form.Item>
+         <Form.Item style={{ marginTop: '16px' }}>
+         <Button type="primary" htmlType="submit">
+           Add Exercise
+         </Button>
+       </Form.Item>
         )}
 
         <Button style={{ marginLeft: 8 }} onClick={handleClear}>
