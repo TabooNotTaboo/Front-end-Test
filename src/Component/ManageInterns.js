@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Form, Input, Button, Row, Col, Modal, message,DatePicker } from 'antd';
+import { Table, Form, Input, Button, Row, Col, Modal, message, DatePicker } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { addIntern, setInterns, updateIntern, deleteIntern } from '../actions/internActions';
 import axios from 'axios';
@@ -12,6 +12,7 @@ const InternManagement = () => {
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
   const [editedInternId, setEditedInternId] = useState(null);
   const [newExpert, setNewExpert] = useState({
     name: '',
@@ -22,7 +23,6 @@ const InternManagement = () => {
     endDate: '',
     status: '',
   });
-  
   const [searchValues, setSearchValues] = useState({
     name: '',
     email: '',
@@ -31,6 +31,7 @@ const InternManagement = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [viewedIntern, setViewedIntern] = useState({});
 
   const handleEditIntern = (record) => {
     setEditModalVisible(true);
@@ -41,6 +42,11 @@ const InternManagement = () => {
       sdt: record.sdt,
       position: record.position,
     });
+  };
+
+  const showViewModal = (record) => {
+    setViewModalVisible(true);
+    setViewedIntern(record);
   };
 
   useEffect(() => {
@@ -72,17 +78,17 @@ const InternManagement = () => {
       const existingIntern = originalInterns.find(
         (intern) => intern.email === values.email || intern.sdt === values.sdt
       );
-  
+
       if (existingIntern) {
         message.error('Email hoặc Số điện thoại đã tồn tại.');
         return;
       }
-  
+
       const response = await axios.post(
         'https://653b7ef32e42fd0d54d534ff.mockapi.io/intern',
         { ...values, startDate: newExpert.startDate, endDate: newExpert.endDate, status: newExpert.status }
       );
-  
+
       if (response.status === 201) {
         const newData = await axios.get('https://653b7ef32e42fd0d54d534ff.mockapi.io/intern');
         dispatch(addIntern(newData.data));
@@ -96,7 +102,6 @@ const InternManagement = () => {
       console.error('Error adding intern:', error);
     }
   };
-  
 
   const handleDeleteIntern = async (id) => {
     try {
@@ -147,13 +152,13 @@ const InternManagement = () => {
     }
   };
 
- const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setNewExpert({
-    ...newExpert,
-    [name]: value,
-  });
-};
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewExpert({
+      ...newExpert,
+      [name]: value,
+    });
+  };
 
   const handleSearch = () => {
     const filteredData = originalInterns.filter((intern) => {
@@ -214,6 +219,10 @@ const InternManagement = () => {
           <span> | </span>
           <Button type="link" onClick={() => handleDeleteIntern(record.id)}>
             Xóa
+          </Button>
+          <span> | </span>
+          <Button type="link" onClick={() => showViewModal(record)}>
+            View
           </Button>
         </span>
       ),
@@ -349,6 +358,20 @@ const InternManagement = () => {
             </Col>
           </Row>
         </Form>
+      </Modal>
+      <Modal
+        title="Thông tin Intern"
+        visible={viewModalVisible}
+        onCancel={() => setViewModalVisible(false)}
+        footer={null}
+      >
+        <p><strong>Họ tên:</strong> {viewedIntern.name}</p>
+        <p><strong>Email:</strong> {viewedIntern.email}</p>
+        <p><strong>Số điện thoại:</strong> {viewedIntern.sdt}</p>
+        <p><strong>Vị trí thực tập:</strong> {viewedIntern.position}</p>
+        <p><strong>Ngày bắt đầu:</strong> {viewedIntern.startDate}</p>
+        <p><strong>Ngày kết thúc:</strong> {viewedIntern.endDate}</p>
+        <p><strong>Trạng thái:</strong> {viewedIntern.status}</p>
       </Modal>
     </div>
   );
